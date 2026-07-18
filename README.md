@@ -9,6 +9,7 @@
 ![Plotly](https://img.shields.io/badge/Plotly-Charts-3F4F75?logo=plotly&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/TimescaleDB-PostgreSQL-4169E1?logo=postgresql&logoColor=white)
 
+🔗 **[Live Demo](https://pattern-zero-observatory-007.streamlit.app)**
 ---
 
 ## What it does
@@ -35,6 +36,7 @@ The Observatory is the visual face of STRATUM — it reads live from the same Ti
 - **Streamlit** — multi-page app framework
 - **Plotly** — interactive candlestick and line charts
 - **SQLAlchemy** — read-only connection into STRATUM's TimescaleDB
+- **Neon** — serverless Postgres hosting (production database)
 - Custom dark theme (Obsidian/Gold) matching Pattern Zero's brand identity
 
 ## Architecture
@@ -55,6 +57,8 @@ The Observatory never writes to the database — strictly read-only, keeping it 
 
 ## Running it locally
 
+The live demo above reads from a Neon-hosted database, continuously updated by STRATUM's Airflow pipelines. To run your own copy locally against either your own local STRATUM instance or a Neon database, follow the steps below.
+
 ```bash
 git clone https://github.com/Auraangel07/pattern-zero-observatory.git
 cd pattern-zero-observatory
@@ -64,6 +68,8 @@ streamlit run app.py
 ```
 
 Requires STRATUM's TimescaleDB to be running (`docker-compose up -d` in the STRATUM repo) — the Observatory reads from it but doesn't manage it.
+
+
 
 ## Project Status
 
