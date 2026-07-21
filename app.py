@@ -9,7 +9,7 @@ import plotly.graph_objects as go
 from datetime import datetime
 from utils.db import run_query
 from utils.sidebar import render_sidebar
-from utils.theme import apply_theme
+from utils.theme import apply_theme, get_chart_layout
 # ───────────────────────────────────────────
 # PAGE CONFIG
 # ───────────────────────────────────────────
@@ -39,44 +39,69 @@ with col_status:
 
 st.markdown("---")
 
-# ───────────────────────────────────────────
-# OVERVIEW ROW — Executive Summary
-# ───────────────────────────────────────────
-st.markdown('<p class="subtitle" style="margin-bottom:10px;">SYSTEM OVERVIEW</p>', unsafe_allow_html=True)
+st.markdown("---")
 
+# ───────────────────────────────────────────
+# OVERVIEW — Executive Summary Row
+# ───────────────────────────────────────────
 @st.cache_data(ttl=300)
 def get_overview_stats():
-    symbols_query = "SELECT COUNT(DISTINCT symbol) as cnt FROM stock_prices"
-    records_query = "SELECT COUNT(*) as cnt FROM stock_prices"
-    pipelines_query = """
-        SELECT COUNT(*) FILTER (WHERE status = 'SUCCESS') as success,
+    symbols = run_query("SELECT COUNT(*) as n FROM symbols_registry")
+    stocks = run_query("SELECT COUNT(*) as n FROM stock_prices")
+    macro = run_query("SELECT COUNT(*) as n FROM macro_indicators")
+    news = run_query("SELECT COUNT(*) as n FROM news_sentiment")
+    filings = run_query("SELECT COUNT(*) as n FROM sec_filings")
+    health = run_query("""
+        SELECT COUNT(*) FILTER (WHERE status = 'SUCCESS') as healthy,
                COUNT(*) as total
         FROM (
             SELECT DISTINCT ON (pipeline_name) pipeline_name, status
             FROM pipeline_logs
             ORDER BY pipeline_name, started_at DESC
         ) latest
-    """
-    symbols_count = run_query(symbols_query)['cnt'].iloc[0]
-    records_count = run_query(records_query)['cnt'].iloc[0]
-    pipeline_health = run_query(pipelines_query)
-    return symbols_count, records_count, pipeline_health
+    """)
+    return symbols, stocks, macro, news, filings, health
 
-try:
-    symbols_count, records_count, pipeline_health = get_overview_stats()
-    success = pipeline_health['success'].iloc[0]
-    total = pipeline_health['total'].iloc[0]
+symbols_df, stocks_df, macro_df, news_df, filings_df, health_df = get_overview_stats()
 
-    st.markdown('<div class="overview-row">', unsafe_allow_html=True)
-    o1, o2, o3, o4 = st.columns(4)
-    o1.metric("Symbols Tracked", symbols_count)
-    o2.metric("Total Records", f"{records_count:,}")
-    o3.metric("Pipelines Healthy", f"{success}/{total}")
-    o4.metric("Data Source", "Yahoo Finance")
-    st.markdown('</div>', unsafe_allow_html=True)
+k1, k2, k3, k4, k5, k6 = st.columns(6)
+with k1:
+    st.metric("Symbols", int(symbols_df['n'][0]))
+with k2:
+    st.metric("Price Records", f"{int(stocks_df['n'][0]):,}")
+with k3:
+    st.metric("Macro Records", f"{int(macro_df['n'][0]):,}")
+with k4:
+    st.metric("News Articles", f"{int(news_df['n'][0]):,}")
+with k5:
+    st.metric("SEC Filings", f"{int(filings_df['n'][0]):,}")
+with k6:
+    healthy = int(health_df['healthy'][0])
+    total = int(health_df['total'][0])
+    st.metric("Pipelines Healthy", f"{healthy}/{total}")
 
-except Exception as e:
-    st.error(f"Overview unavailable: {e}")
+st.markdown("---")
+
+# ───────────────────────────────────────────
+# FILTER BAR
+# ───────────────────────────────────────────
+st.markdown('<div class="filter-bar">', unsafe_allow_html=True)
+fc1, fc2, fc3 = st.columns([2, 2, 1])
+with fc1:
+    date_range = st.date_input("Date Range", value=(), key="global_date_filter")
+with fc2:
+    asset_filter = st.multiselect(
+        "Asset Classes",
+        ["Equities", "ETFs", "Crypto"],
+        default=["Equities", "ETFs", "Crypto"],
+        key="global_asset_filter"
+    )
+with fc3:
+    st.write("")
+    st.button("🔄 Refresh", key="refresh_btn")
+st.markdown('</div>', unsafe_allow_html=True)
+
+st.markdown("---")
 # ───────────────────────────────────────────
 # LIVE MARKET SNAPSHOT
 # ───────────────────────────────────────────
@@ -168,19 +193,9 @@ try:
                     name=selected_symbol
                 )])
 
-                fig.update_layout(
-                    title=f"{selected_symbol} — Last {days} Days",
-                    xaxis_title=None,
-                    yaxis_title="Price",
-                    template="plotly_dark",
-                    height=450,
-                    paper_bgcolor="#0A0A0A",
-                    plot_bgcolor="#0A0A0A",
-                    font=dict(family="DM Mono, monospace", color="#E8E8E8"),
-                    xaxis_rangeslider_visible=False,
-                    margin=dict(t=50, b=20, l=20, r=20)
-                )
-                st.plotly_chart(fig, use_container_width=True)
+                fig.update_layout(**get_chart_layout(f"{selected_symbol} — Last {days} Days"))
+                fig.update_layout(xaxis_rangeslider_visible=False)
+                st.plotly_chart(fig, width='stretch')
             else:
                 st.info(f"No history found for {selected_symbol}")
 

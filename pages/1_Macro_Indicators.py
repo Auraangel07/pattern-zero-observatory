@@ -12,7 +12,7 @@ st.set_page_config(
     layout="wide"
 )
 
-from utils.theme import apply_theme
+from utils.theme import apply_theme, get_chart_layout
 apply_theme()
 
 st.markdown('<p class="page-title">Macro Indicators</p>', unsafe_allow_html=True)
@@ -87,16 +87,8 @@ try:
                 fill='tozeroy',
                 fillcolor='rgba(212, 175, 55, 0.08)'
             ))
-            fig.update_layout(
-                title=f"{selected_indicator} — {selected_country}",
-                template="plotly_dark",
-                paper_bgcolor="#0A0A0A",
-                plot_bgcolor="#0A0A0A",
-                font=dict(family="DM Mono, monospace", color="#E8E8E8"),
-                height=450,
-                margin=dict(t=50, b=20, l=20, r=20)
-            )
-            st.plotly_chart(fig, use_container_width=True)
+            fig.update_layout(**get_chart_layout(f"{selected_indicator} — {selected_country}"))
+            st.plotly_chart(fig, width='stretch')
         else:
             st.info("No historical data for this selection")
     else:

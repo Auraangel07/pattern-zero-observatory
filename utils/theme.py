@@ -111,3 +111,21 @@ def apply_theme():
         }
     </style>
     """, unsafe_allow_html=True)
+
+
+def get_chart_layout(title: str, height: int = 450):
+    """
+    Shared Plotly layout — one visual language
+    across every chart in the app.
+    """
+    return dict(
+        title=title,
+        template="plotly_dark",
+        height=height,
+        paper_bgcolor="#0A0A0A",
+        plot_bgcolor="#0A0A0A",
+        font=dict(family="DM Mono, monospace", color="#E8E8E8"),
+        xaxis=dict(gridcolor="#262626", showgrid=True),
+        yaxis=dict(gridcolor="#262626", showgrid=True),
+        margin=dict(t=50, b=20, l=20, r=20),
+    )

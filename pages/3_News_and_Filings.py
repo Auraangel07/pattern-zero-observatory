@@ -6,6 +6,7 @@
 import streamlit as st
 from utils.db import run_query
 from utils.theme import apply_theme
+from utils.sidebar import render_sidebar
 
 st.set_page_config(
     page_title="Pattern Zero — News & Filings",
@@ -85,7 +86,7 @@ with col_news:
 # FILINGS PANEL
 # ───────────────────────────────────────────
 with col_filings:
-    st.markdown("### 📄 Recent SEC Filings")
+    st.markdown("### Recent SEC Filings")
 
     @st.cache_data(ttl=300)
     def get_filings(symbol_filter):
@@ -124,3 +125,4 @@ with col_filings:
 
 st.markdown("---")
 st.caption("Pattern Zero · Module I: STRATUM · Project 03")
+render_sidebar()
