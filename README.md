@@ -34,7 +34,7 @@ The Observatory is the visual face of STRATUM — it reads live from the same Ne
 ### Pipeline Health
 ![Pipeline Health](docs/screenshots/pipeline.png)
 
-### Pipeline Health
+### News and Filings
 ![News and Filings](docs/screenshots/news.png)
 
 
