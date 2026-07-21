@@ -67,17 +67,27 @@ The Observatory never writes to the database — strictly read-only, keeping it 
 
 ## Running it locally
 
-The live demo above reads from a Neon-hosted database, continuously updated by STRATUM's Airflow pipelines. To run your own copy locally against either your own local STRATUM instance or a Neon database, follow the steps below.
+The live demo above reads from a Neon-hosted database (production), continuously updated by STRATUM's Airflow pipelines. To run your own copy of the Observatory, point it at either that same Neon database or your own local STRATUM instance:
 
 ```bash
 git clone https://github.com/Auraangel07/pattern-zero-observatory.git
 cd pattern-zero-observatory
-cp .env.example .env   # point at your running STRATUM database
+cp .env.example .env
 pip install -r requirements.txt
 python -m streamlit run app.py
 ```
 
-Requires STRATUM's ingestion pipelines to be running against the same database — the Observatory reads from it but doesn't manage it.
+Set these in `.env` — either Neon credentials (matching STRATUM's production database) or your own local TimescaleDB container's credentials:
+
+```env
+DB_HOST=your-neon-host.neon.tech   # or "timescaledb" for a local Docker setup
+DB_PORT=5432
+DB_NAME=neondb                      # or "pattern_zero" for local
+DB_USER=your_neon_user
+DB_PASSWORD=your_neon_password
+```
+
+The Observatory is strictly read-only — it queries whichever database STRATUM's ingestion is writing to. It has no opinion on where that database lives; Neon and local Docker Postgres both work identically from its perspective.
 
 > **Note:** on Windows machines with Application Control policies enabled, `streamlit run app.py` may be blocked as an unsigned executable. Use `python -m streamlit run app.py` instead.
 
